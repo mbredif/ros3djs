@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+
+<script src="https://static.robotwebtools.org/threejs/current/three.js"></script>
+<script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script src="https://static.robotwebtools.org/roslibjs/current/roslib.js"></script>
+<script src="../build/ros3d.js"></script>
+
+<script>
+  /**
+   * Setup all visualization elements when the page is loaded.
+   */
+  function init() {
+    // Connect to ROS.
+    var ros = new ROSLIB.Ros({
+      url : 'ws://localhost:9090'
+    });
+
+    // Create the main viewer.
+    var viewer = new ROS3D.Viewer({
+      divID : 'viewer',
+      width : 800,
+      height : 600,
+      antialias : true
+    });
+
+    // Setup a client to listen to TFs.
+    var tfClient = new ROSLIB.TFClient({
+      ros : ros,
+      angularThres : 0.000001,
+      transThres : 0.000001,
+      rate : 100.0,
+      fixedFrame : 'world'
+    });
+
+    var cameraInfo = new ROS3D.CameraInfo({
+        ros: ros,
+        tfClient: tfClient,
+        rootObject: viewer.scene,
+        topic: '/kitti/camera_color_right/camera_info',
+        scale: 0.5,
+        color: 0x00ffff
+    });
+    
+    
+    var cameraInfo = new ROS3D.CameraInfo({
+        ros: ros,
+        tfClient: tfClient,
+        rootObject: viewer.scene,
+        topic: '/kitti/camera_color_left/camera_info',
+        scale: 0.5,
+        color: 0x00ff00
+    });
+    
+    var cameraInfo = new ROS3D.CameraInfo({
+        ros: ros,
+        tfClient: tfClient,
+        rootObject: viewer.scene,
+        topic: '/kitti/camera_gray_right/camera_info',
+        scale: 0.5,
+        color: 0x0000ff
+    });
+    var cameraInfo = new ROS3D.CameraInfo({
+        ros: ros,
+        tfClient: tfClient,
+        rootObject: viewer.scene,
+        topic: '/kitti/camera_gray_left/camera_info',
+        scale: 0.5,
+        color: 0xffff00
+    });
+
+    var start = Date.now();
+    setInterval(function(){ 
+        var millis = Date.now() - start;
+        cameraInfo.setHeight(1+Math.cos(millis/500));
+    }, 10);
+    
+    function handleTFMessage(msg) {
+      for(var i =0; i<msg.transforms.length; ++i) {
+        var transform = new ROSLIB.Transform(msg.transforms[i]);
+        console.log(msg.transforms[i], transform);
+      }
+    }
+    
+    var tf = new ROSLIB.Topic({
+      ros : ros,
+      name : '/tf',
+      messageType : 'tf2_msgs/TFMessage'
+    });
+//    tf.subscribe(handleTFMessage);
+/*
+    var tf_static = new ROSLIB.Topic({
+      ros : ros,
+      name : '/tf_static',
+      messageType : 'tf2_msgs/TFMessage'
+    });
+    tf_static.subscribe(handleTFMessage);
+*/
+  }
+  
+</script>
+</head>
+
+<body onload="init()">
+  <h1><a href="http://www.cvlibs.net/datasets/kitti">Kitti</a> CameraInfo Example</h1>
+  <p>Run the following commands in the terminal then refresh the page.</p>
+  <ol>
+    <li><tt>roslaunch ros3djs.launch</tt></li>
+    <li><tt>rosparam set use_sim_time true</tt></li>
+    <li><tt>rosbag play -l --clock <a href="https://github.com/tomas789/kitti2bag">kitti_2011_09_26_drive_0002_synced.bag</a></tt></li>
+  </ol>
+  <div id="viewer"></div>
+</body>
+</html>
