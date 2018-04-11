@@ -33,6 +33,7 @@ export * from './navigation/PoseWithCovariance'
 export * from './sensors/LaserScan'
 export * from './sensors/Particles'
 export * from './sensors/PointCloud2'
+export * from './sensors/NavSatFix'
 
 export * from './urdf/Urdf'
 export * from './urdf/UrdfClient'
